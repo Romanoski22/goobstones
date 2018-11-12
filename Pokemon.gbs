@@ -1,0 +1,450 @@
+type TipoDePokemon is variant {
+  /* Un variant que representa los posibles
+  tipos de Pokemon registrados en el sistema */
+  case Tierra {}  
+  case Agua   {}
+  case Fuego  {}
+}
+
+type Pokemon is record {
+  /* El tipo que representa un Pokemon, 
+  compuesto de distintos componentes
+  INVARIANTE DE REPRESENTACIÓN:
+    fuerza es mayor o igual a cero.
+    nivel es mayor o igual a cero.
+  */
+  field tipo            // TipoDePokeon
+  field fuerza          // Número
+  field estaVivo        // Booleano True esta Vivo, False esta Muerto, si esta muerto ademas fuerza es 0.
+  field nivel           // Número
+}
+
+/*----------------------------------------------------------*/
+/*------------------- PARTE 1, REGISTROS -------------------*/
+/*----------------------------------------------------------*/
+
+function esMasFuerte(pokemonA, pokemonB) {
+  /*
+    PROPÓSITO: Describe True si el pokemonA tiene
+      mas fuerza que el pokemonB. False en caso contrario.
+    PRECONDICIÓN: Ninguna.
+    PARÁMETROS:
+      pokemonA: Pokemon El pokemon que se desea saber si tiene mayor nivel
+      pokemonB: Pokemon El otro pokemon contra el cual comparar
+    RETORNO: Booleano
+  */
+  return(fuerza(pokemonA)>fuerza(pokemonB)
+}
+
+function esMayorNivel(pokemonA, pokemonB) {
+  /*
+    PROPÓSITO: Describe True si el pokemonA tiene
+      un nivel más alto que el pokemonB. False en caso contrario.
+    PRECONDICIÓN: Ninguna.
+    PARÁMETROS:
+      pokemonA: Pokemon El pokemon que se desea saber si tiene mayor nivel
+      pokemonB: Pokemon El otro pokemon contra el cual comparar
+    RETORNO: Booleano
+  */
+  return(nivel(pokemonA)>nivel(pokemonB))
+}
+
+function potenciarPokemon(pokemon, n) {
+  /*
+    PROPÓSITO: Describe un nuevo Pokemon, igual al recibido,
+      pero con la fuerza y el nivel multiplicados en "n".
+    PRECONDICIÓN: Ninguna.
+    PARÁMETROS:
+      pokemon: Pokemon - El pokemon sobre el cual basarse para crear el nuevo
+      n: Número - El numero por el cual multiplicar la fuerza y nivel del pokemon
+    RETORNO: Pokemon
+  */
+  return(Pokemon(pokemon|fuerza<- fuerza(pokemon) * n,
+                         nivel <- nivel(pokemon) * n))
+}
+
+function duplicarValoresAPokemon(pokemon) {
+  /*
+    PROPÓSITO: Describeun nuevo Pokemon, igual al recibido,
+      pero con la fuerza y el nivel duplicados.
+    PRECONDICIÓN: Ninguna.
+    PARÁMETROS:
+      pokemon: Pokemon El pokemon sobre el cual basar el nuevo
+    RETORNO: Pokemon
+  */
+  return(potenciarPokemon(pokemon, 2))
+}
+
+function potenciarPokemonSiEsDeTipo(pokemón, n, tipo) {
+  /*
+    PROPÓSITO: Describe un nuevo Pokemon, igual al recibido,
+      pero con la fuerza y el nivel multiplicados en "n", solo si
+      el tipo del pokemon recibido es igual a "tipo", caso contrario,
+      retrona el mismo pokemon.
+    PRECONDICIÓN: Ninguna.
+    PARÁMETROS:
+      pokemon: Pokemon - El pokemon sobre el cual basarse para crear el nuevo
+      n: Número - El numero por el cual multiplicar la fuerza del pokemon
+      tipo: TipoDePokemon - El tipo a mirar para potenciar o no el pokemon
+    RETORNO: Pokemon
+  */
+  return(choose potenciarPokemon(pokemon,n) when( tipo == tipo(pokemon)) 
+                pokemon otherwise)
+}
+
+function destruirPokemon(pokemon) {
+  /*
+    PROPÓSITO: Describe un nuevo Pokemon, igual al recibido,
+      pero con la fuerza en cero y estado muerto.
+    PRECONDICIÓN: Ninguna.
+    PARÁMETROS:
+      pokemon: Pokemon - El pokemon sobre el cual basarse para crear el nuevo
+    RETORNO: Pokemon
+  */
+  return(Pokemon(pokemon|fuerza <- 0,
+                         estaVivo <- False))
+}
+
+/*----------------------------------------------------------*/
+/*--------------------- PARTE 2, LISTAS --------------------*/
+/*----------------------------------------------------------*/
+
+
+function entrenarPokemones(listaDePokemones, n) {
+    /*
+    PROPÓSITO: Describe una nueva lista de pokemones, que contiene cada uno
+      de los pokemons de la lista dada, potenciados cada uno en n.
+    PRECONDICIÓN: Ninguna.
+    PARÁMETROS:
+      listaDePokemones: Lista de Pokemon - La lista de pokemones a potenciar
+      n: Número - El numero por el cual potenciar el pokemon
+    RETORNO: Lista de Pokemon
+    */
+    nuevosPokemonesPotenciados:=[]
+    foreach pokemon in listaDePokemones{
+        nuevosPokemonesPotenciados:=nuevosPokemonesPotenciados ++ [potenciarPokemon(pokemon,n)]
+    }
+    return(nuevosPokemonesPotenciados)
+}
+
+function pokemonesDelTipo(listaDePokemones, tipo) {
+    /*
+    PROPÓSITO: Describe una nueva lista de pokemones, que contiene solo
+    los pokemons de la lista dada que sean de tipo "tipo"
+    PRECONDICIÓN: Ninguna.
+    PARÁMETROS:
+      listaDePokemones: Lista de Pokemon - La lista de pokemones a filtrar
+      tipo: Tipo de Pokemon - El tipo sobre el cual filtrar la lista.
+    RETORNO: Lista de Pokemon
+    */
+    pokemonesDelMismoTipo:=[]
+    foreach pokemon in listaDePokemones{
+        pokemonesDelMismoTipo:=pokemonesDelMismoTipo ++ singularSi(pokemon,tipo == tipo(pokemon))
+    }
+    return(pokemonesDelMismoTipo)
+}
+
+function elMasFuerte(listaDePokemones) {
+    /*
+    PROPÓSITO: Describe el pokemon más fuerte que contiene "listaDePokemones".
+        Si hubiera más de un pokemon más fuerte, es indistinto cual de los dos devuelve.
+    PRECONDICIÓN: Lista de pokemones tiene al menos 1 elemento.
+    PARÁMETROS:
+      listaDePokemones: Lista de Pokemon - La lista de pokemones de donde se obtendrá el más fuerte..
+    RETORNO: Pokemon
+    */
+    pokemonMasFuerte:= primero(listaDePokemones)
+    foreach pokemon in resto(listaDePokemones){
+        pokemonMasFuerte:= elMasFuerteEntre(pokemonMasFuerte,pokemon)
+    }
+    return(pokemonMasFuerte)
+}
+
+function elMasFuerteEntre(pokemonA,pokemonB){
+    return(choose pokemonA when (esMasFuerte(pokemonA,pokemonB) 
+                  pokemonB otherwise)
+}
+
+
+function duplicarValorAlTipo(listaDePokemones, tipo) {
+    /*
+    PROPÓSITO: Describe una nueva lista de pokemons, que contiene cada uno
+      de los pokemons de la lista dada, pero, con aquellos pokemones que sean
+      de tipo "tipo", con sus valores duplicados. Los pokemones de otro tipo,
+      permanecen exactamente igual.
+    OBSERVACIÓN: Si la listaDePokemones tiene 10 elementos, la lista resultante
+        deberá tener también 1o elementos.
+    PRECONDICIÓN: Ninguna.
+    PARÁMETROS:
+      listaDePokemones: Lista de Pokemon - La lista de pokemones a potenciar
+      tipo: TipoDePokemon - El tipo de los pokemones a potenciar
+    RETORNO: Lista de Pokemon
+    */
+    listaDePokemonesPotenciados:=[]
+    foreach pokemon in listaDePokemones{
+        listaDePokemonesPotenciados:= listaDePokemonesPotenciados ++ 
+                                            [potenciarPokemonSiEsDeTipo(pokemon,2,tipo)]
+    }
+    return(listaDePokemonesPotenciados)
+}
+
+function elMasDebil(listaDePokemones) {
+    /*
+    PROPÓSITO: Describe el pokemon más debil que contiene "listaDePokemones".
+        Si hubiera más de un pokemon más debil, es indistinto cual de los dos devuelve.
+    PRECONDICIÓN: Lista de pokemones tiene al menos 1 elemento.
+    PARÁMETROS:
+      listaDePokemones: Lista de Pokemon - La lista de pokemones de donde se obtendrá el más debil..
+    RETORNO: Pokemon
+    */
+    pokemonMasDebil:= primero(listaDePokemones)
+    foreach pokemon in resto(listaDePokemones){
+        pokemonMasDebil:= elMasDebilEntre(pokemonMasFuerte,pokemon)
+    }
+    return(pokemonMasDebil)
+}
+
+function elMasDebilEntre(pokemonA,pokemonB){
+    return(choose pokemonA when (not esMasFuerte(pokemonA,pokemonB) 
+                  pokemonB otherwise)
+}
+
+function pokemonesMuertos(listaDePokemones) {
+    /*
+    PROPÓSITO: Describe una nueva lista de pokemones, que contiene solo
+        los pokemons de la lista dada que estén muertos.
+    PRECONDICIÓN: Ninguna.
+    PARÁMETROS:
+      listaDePokemones: Lista de Pokemon - La lista de pokemones a filtrar
+    RETORNO: Lista de Pokemon
+    */
+    pokemonesQueEstanMuertos:=[]
+    foreach pokemon in listaDePokemones{
+        pokemonesQueEstanMuertos:= pokemonesQueEstanMuertos ++ 
+                                        singularSi(pokemon,not estaVivo(pokemon)))
+    }
+    return(pokemonesQueEstanMuertos)
+}
+
+function cantPokemonesVivos(listaPokemones) {
+    /*
+    PROPÓSITO: Describe la cantidad de pokemones de la lista que están vivos.
+    PRECONDICIÓN: Ninguna.
+    PARÁMETROS:
+      listaDePokemones: Lista de Pokemon - La lista de pokemones sobre la cual contar
+    RETORNO: Número
+    */
+}
+
+function existePokemonConFuerza_tipo_YNivel(listaPokemones, fuerza, tipo, nivel) {
+    /*
+    PROPÓSITO: Describe True si en la listaDePokemones existe algún pokemon que
+        tenga exactamente la fuerza, el tipo y el nivel pasados como argumento.
+        Retorna False en caso contrario.
+    PRECONDICIÓN: Ninguna.
+    PARÁMETROS:
+      listaDePokemones: Lista de Pokemon - La lista de pokemones sobre la cual buscar.
+      fuerza: Número - La fuerza del pokemon sobre el cual buscar
+      tipo: Tipo de Pokemon - El tipo del pokemon sobre el cual buscar
+      nivel: Número - El nivel del pokemon sobre el cual buscar
+    RETORNO: Booleano
+    */
+}
+
+/*----------------------------------------------------------*/
+/*------------- PARTE 3, REGISTROS Y LISTAS ----------------*/
+/*----------------------------------------------------------*/
+
+type Entrenador is record {
+    /* Un tipo que representa a un entrenador. El entrenador
+    es quien controla a los pokemon y los hace batallar.
+    INVARIANTE DE REPRESENTACIÓN:
+        identificador debe ser mayor a cero.
+    */
+    field pokemones        // Lista de Pokemon
+    field identificador    // Número
+    field esTactico        // Booleano 
+}
+
+
+function entrenador(identificador, esBueno) {
+    /*
+    PROPÓSITO: Describe un nuevo entrenador, con el número de indentificador
+        dado por parámetro, y esTactico determinado por el booleano esBueno.
+    OBSERVACIÓN: Notar que el entrenador no tiene en principio pokemones
+    PRECONDICIÓN: Ninguna.
+    PARÁMETROS:
+      identificador: Número - El número con el cual identificar al nuevo entrenador
+      esBueno: Booleano - Un booleano que determina si el entrenador es táctico o no.
+    RETORNO: Entrenador
+    */
+}
+
+function agregarPokemonAEntrenador(entrenador, pokemon) {
+    /*
+    PROPÓSITO: Describe un nuevo entrenador, igual al recibido, pero
+        ahora con un nuevo pokemon (el dado) en su lista de pokemons.
+    PRECONDICIÓN: Ninguna.
+    PARÁMETROS:
+      entrenador: Entrenador - El entrenador sobre el cual basar el nuevo.
+      esBueno: Pokemon - El pokemon a agregar a la lista del entrenador.
+    RETORNO: Entrenador
+    */
+}
+
+
+function cantidadPokemones(entrenador) {
+    /*
+    PROPÓSITO: Describe la cantidad de pokemones que tiene el entrenador
+        recibido por parámetro.
+    PRECONDICIÓN: Ninguna.
+    PARÁMETROS:
+      entrenador: Entrenador - El entrenador sobre el cual mirar sus pokemons.
+    RETORNO: Número
+    */
+}
+
+function cantidadPokemonesTotales(listaDeEntrenadores) {
+    /*
+    PROPÓSITO: Describe la cantidad de pokemones que tienen en conjunto
+        todos los entrenadores de la lista de entrenadores recibida por parámetro.
+    PRECONDICIÓN: Ninguna.
+    PARÁMETROS:
+      listaDeEntrenadores: Lista de Entrenador - La lista con los entrenadores
+            sobre los cuales se quiere contar los pokemon.
+    RETORNO: Número
+    */
+}
+
+
+function mayorAntiguedad(entrenadorA, entrenadorB) {
+    /*
+    PROPÓSITO: Describe al entrenador que tiene menor número de identificación
+        entre los dos dados.
+    OBSERVACIÓN: No hay dos entrenadores con el mismo número de identificación.
+    PRECONDICIÓN: Ninguna.
+    PARÁMETROS:
+      entrenadorA: Entrenador - El primer entrenador a comparar.
+      entrenadorB: Entrenador - El segundo entrenador a comparar.
+    RETORNO: Entrenador
+    */
+}
+
+function elMasAntiguo(listaDeEntrenadores) {
+    /*
+    PROPÓSITO: Describe al entrenador que tiene menor número de identificación
+        en toda la lista de entrenadores.
+    OBSERVACIÓN: No hay dos entrenadores con el mismo número de identificación.
+    PRECONDICIÓN: La listaDeEntrenadores debe contener al menos 1 entrenador.
+    PARÁMETROS:
+      listaDeEntrenadores: Lista de Entrenador - La lista con los entrenadores
+            sobre los cuales buscar al más antiguo.
+    RETORNO: Entrenador
+    */
+}
+
+function desafio(entrenadorA, entrenadorB) {
+    /*
+    PROPÓSITO: Describe al entrenador que ganó el desafío
+    OBSERVACIÓN: El desafío consiste en que compitan dos pokemones a la vez,
+        hasta que no queden más pokemones. Puede asumir que ambos entrenadores
+        tienen la misma cantidad de pokemones. Así, pelean entonces
+        el primer pokemon del primer entrenador, contra el primero del segundo entrenador,
+        el segundo del primer entrenador, contra el segundo del segundo entrenador,
+        el tercero contra el tercero, etc.
+        En cada pelea siempre gana el pokemon más fuerte, de haber empate, nadie gana
+        esa pelea. El entrenador vencedor del desafío es aquel que ganó más peleas
+        en total. De haber empate en la cantidad de peleas, vence el entrenador
+        más antiguo.
+    PRECONDICIÓN: Ninguna.
+    PARÁMETROS:
+      entrenadorA: Entrenador - El primer entrenador.
+      entrenadorB: Entrenador - El segundo entrenador.
+    RETORNO: Entrenador
+    */
+}
+
+function desafioDeEntrenadores(listaDeEntrenadores) {
+    /*
+    PROPÓSITO: Describe al entrenador que ganó el desafío entre todos los
+        entrenadores de la lista.
+    OBSERVACIÓN: El desafío es siempre entre dos entrenadores. Arrancan el primero
+    y el segundo de la lista, luego el vencedor de estos dos contra el tercero,
+    el vencedor de estos contra el cuarto, y así siguiendo. O sea, modelo
+    "ganador queda en cancha" y juega con el próximo.
+    PRECONDICIÓN: listaDeEntrenadores tiene al menos dos entrenadores.
+    PARÁMETROS:
+      listaDeEntrenadores: Lista de Entrenador - La lista de entrenadores que vana a participar del desafío.
+    RETORNO: Entrenador
+    */
+}
+
+
+function fuerzaTotalEntrenador(entrenador) {
+    /*
+    PROPÓSITO: Describe la suma de la fuerza de todos los pokemones del entrenador
+        recibido como parámetro.
+    PRECONDICIÓN: Ninguna
+    PARÁMETROS:
+      entrenador: Entrenador - El entrenador al cual calcular la fuerza de sus pokemones.
+    RETORNO: Número
+    */
+}
+
+
+function fuerzaTotalEnBatalla (listaDeEntrenadores) {
+    /*
+    PROPÓSITO: Describe la suma de la fuerza de todos los pokemones de todos
+        los entrenadores de la lista recibida como parámetro.
+    PRECONDICIÓN: Ninguna
+    PARÁMETROS:
+      listaDeEntrenadores: Lista de Entrenador - La lista de todos los entrenadores
+            a los cuales calcular la fuerza de sus pokemones.
+    RETORNO: Número
+    */
+}
+
+
+function mejorPokemonParaBatalla(entrenador) {
+    /*
+    PROPÓSITO: Si el entrenador es táctico, describe al pokemon de
+        mayor nivel de la lista de pokemones del entrenador, con sus valores
+        duplicados. Caso contrario describe al primer pokemon de la lista
+        de pokemones del entrenador.
+    PRECONDICIÓN: El entrenador debe tener al menos 1 pokemon.
+    PARÁMETROS:
+      entrenador: Entrenador - El entrenador del cual obtener el mejor pokemon.
+    RETORNO: Pokemon
+    */
+}
+
+
+function desafioInteligenteMejorDeNBatallas(entrenadorA, entrenadorB, n) {
+    /*
+    PROPÓSITO: Describe al entrenador que ganó el desafío inteligente.
+    OBSERVACIÓN: A diferencia del desafío común, en este desafío se realizan
+        solo "n" batallas. Además, el entrenador táctico elegirá siempre el pokemon
+        más fuerte que le quede disponible para la batalla, con sus valores duplicados.
+        Un entrenador no táctico elegirá siempre el siguiente pokemon de su lista.
+        Notece que un mismo pokemon no pelea dos veces.
+    PRECONDICIÓN: Los entrenadores tienen al menos "n" pokemons cada uno.
+    PARÁMETROS:
+      entrenadorA: Entrenador - El primer entrenador.
+      entrenadorB: Entrenador - El segundo entrenador.
+    RETORNO: Entrenador
+    */
+}
+
+
+function desafioInteligenteMejorDeNBatallas(listaDeEntrenadores,  n) {
+    /*
+    PROPÓSITO: Describe al entrenador que ganó el desafío inteligente entre todos los entrenadores de la lista
+    OBSERVACIÓN: Igual que el desafío común entre varios entrenadores, con el
+        modelo de ganador queda en cancha, pero cada desafío es ahora un
+        desafío inteligente.
+    PRECONDICIÓN: La lista de entrenadores tiene al menos 2 entrenadores.
+    PARÁMETROS:
+      listaDeEntrenadores: Lista de Entrenador - La lista de entrenadores que van a participar del desafío.
+    RETORNO: Entrenador
+    */
+}
